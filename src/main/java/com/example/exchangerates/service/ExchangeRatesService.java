@@ -1,11 +1,12 @@
 package com.example.exchangerates.service;
 
 import com.example.exchangerates.model.ExchangeRate;
-import com.example.exchangerates.model.Giphy;
-import com.example.exchangerates.model.GiphyData;
+import com.example.exchangerates.model.GiphyDto;
 import com.example.exchangerates.proxy.GiphyProxy;
 import com.example.exchangerates.proxy.OpenExchangeRatesProxy;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +31,7 @@ public class ExchangeRatesService {
     private final String RICH = "rich";
     private final String BROKE = "broke";
 
-    public GiphyData makeMeRich(String currency) {
+    public GiphyDto makeMeRich(String currency) {
         String historicalPath = LocalDate.now().minusDays(3).toString();
 
         ExchangeRate latestExchangeRate = openExchangeRatesProxy.getLatest(token, base);
@@ -39,8 +40,7 @@ public class ExchangeRatesService {
         Double valueLatest = latestExchangeRate.getRates().get(currency);
         Double valueHistorical = historicalExchangeRate.getRates().get(currency);
 
-
-        return valueLatest > valueHistorical ? giphyProxy.getGif(apiKeyGiphy, RICH).data : giphyProxy.getGif(apiKeyGiphy, BROKE).data;
+        return valueLatest > valueHistorical ? parseJson(giphyProxy.getGif(apiKeyGiphy, RICH)) : parseJson(giphyProxy.getGif(apiKeyGiphy, BROKE));
 
     }
 
@@ -49,7 +49,15 @@ public class ExchangeRatesService {
     }
 
     public ExchangeRate getHistorical() {
-        String path = LocalDate.now().minusDays(3).toString();
+        String path = LocalDate.now().minusDays(1).toString();
         return openExchangeRatesProxy.getHistorical(path, token, base);
+    }
+
+    private GiphyDto parseJson(String json) {
+        JSONObject objRes = new JSONObject(json);
+        val url = objRes.getJSONObject("data").getJSONObject("images").getJSONObject("downsized").get("url").toString();
+        val title = objRes.getJSONObject("data").get("title").toString();
+
+        return new GiphyDto(url, title);
     }
 }
