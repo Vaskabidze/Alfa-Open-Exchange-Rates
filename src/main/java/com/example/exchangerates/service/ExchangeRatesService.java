@@ -1,5 +1,6 @@
 package com.example.exchangerates.service;
 
+import com.example.exchangerates.model.CurrencyNotFoundException;
 import com.example.exchangerates.model.ExchangeRate;
 import com.example.exchangerates.model.GiphyDto;
 import com.example.exchangerates.proxy.GiphyProxy;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -31,8 +33,13 @@ public class ExchangeRatesService {
     private final String RICH = "rich";
     private final String BROKE = "broke";
 
+
     public GiphyDto makeMeRich(String currency) {
-        String historicalPath = LocalDate.now().minusDays(3).toString();
+        String historicalPath = LocalDate.now().minusDays(1).toString();
+
+        if (!openExchangeRatesProxy.getCurrencies(token).containsKey(currency)) {
+            throw new CurrencyNotFoundException(CurrencyNotFoundException.msgPrefix + currency);
+        }
 
         ExchangeRate latestExchangeRate = openExchangeRatesProxy.getLatest(token, base);
         ExchangeRate historicalExchangeRate = openExchangeRatesProxy.getHistorical(historicalPath, token, base);
@@ -51,6 +58,10 @@ public class ExchangeRatesService {
     public ExchangeRate getHistorical() {
         String path = LocalDate.now().minusDays(1).toString();
         return openExchangeRatesProxy.getHistorical(path, token, base);
+    }
+
+    public Map<String, String> availableCurrencies() {
+        return openExchangeRatesProxy.getCurrencies(token);
     }
 
     private GiphyDto parseJson(String json) {

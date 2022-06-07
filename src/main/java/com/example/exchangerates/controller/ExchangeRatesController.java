@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,7 +23,7 @@ public class ExchangeRatesController {
         return exchangeRatesService.getLatest();
     }
 
-    @GetMapping("/getHistorical") //TODO: change 3 to 1!
+    @GetMapping("/getHistorical")
     public ExchangeRate getHistorical() {
         return exchangeRatesService.getHistorical();
     }
@@ -30,6 +31,11 @@ public class ExchangeRatesController {
     @GetMapping("/makeMeRich")
     public GiphyDto makeMeRich(@RequestParam String currency) {
         return exchangeRatesService.makeMeRich(currency);
+    }
+
+    @GetMapping("/availableCurrencies")
+    public Map<String, String> availableCurrencies() {
+        return exchangeRatesService.availableCurrencies();
     }
 
     @GetMapping("/web")
